@@ -6,23 +6,31 @@ public class PlayerController : MonoBehaviour
 {
     public float maxSpeed = 6;
     public float speed = 50f;
-    public float jumpPower = 600f;
+    public float jumpPower = 900f;
 
     public bool grounded;
-    public bool boxx;
+    public bool canDoubleJump;
+
+    //stats
+    public int curHealth;
+    public int maxHealth = 5;
 
     private Rigidbody2D rb2d;
     private Animator anim;
+    private GameMaster gm;
 
     void Start()
     {
         rb2d = gameObject.GetComponent<Rigidbody2D>();
         anim = gameObject.GetComponent<Animator>();
+
+        curHealth = maxHealth;
+
+        gm = GameObject.FindGameObjectWithTag("GameMaster").GetComponent<GameMaster>();
     }
 
     void Update()
     {
-        
         anim.SetBool("Grounded", grounded);
         anim.SetFloat("Speed", Mathf.Abs(Input.GetAxis("Horizontal")));
 
@@ -36,9 +44,30 @@ public class PlayerController : MonoBehaviour
         }
         if (Input.GetButtonDown("Jump"))
         {
-            rb2d.AddForce(Vector2.up * jumpPower);
-            grounded = false;
-        
+            if(grounded)
+            {
+                rb2d.AddForce(Vector2.up * jumpPower);
+                canDoubleJump = true;
+                grounded = false;
+            }
+            else
+            {
+                if(canDoubleJump)
+                {
+                    canDoubleJump = false;
+                    rb2d.velocity = new Vector2(rb2d.velocity.x, 0);
+                    rb2d.AddForce(Vector2.up * jumpPower);
+                }
+            }
+        }
+
+        if(curHealth > maxHealth)
+        {
+            curHealth = maxHealth;
+        }
+        if(curHealth <= 0)
+        {
+            Die();
         }
     }
 
@@ -59,9 +88,37 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void Die()
+    {
+        //Restart
+        Application.LoadLevel(Application.loadedLevel);
+    }
 
     public void Damage(int dmg)
     {
+        curHealth -= dmg;
+        //gameObject.GetComponent<Animation>().Play("Player_RedAnimation");
+    }
 
+    public IEnumerator Knockback(float knockDur, float knockbackPwr, Vector3 knockbackDir)
+    {
+        float timer = 0;
+
+        while( knockDur > timer)
+        {
+            timer += Time.deltaTime;
+
+            rb2d.AddForce(new Vector3(knockbackDir.x * 10, knockbackDir.y * knockbackPwr, transform.position.z));
+        }
+        yield return 0;
+    }
+
+    void OnTriggerEnter2D(Collider2D col)
+    {
+        if(col.CompareTag("Coin"))
+        {
+            Destroy(col.gameObject);
+            gm.points += 1;
+        }
     }
 }

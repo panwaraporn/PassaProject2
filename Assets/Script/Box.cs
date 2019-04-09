@@ -1,23 +1,40 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Box : MonoBehaviour
 {
-    private PlayerController player;
+    public int LevelToLoad;
 
-   
+    private GameMaster gm;
 
-    void Start()
+    private void Start()
     {
-        player = gameObject.GetComponentInParent<PlayerController>();
-
-
+        gm = GameObject.FindGameObjectWithTag("GameMaster").GetComponent<GameMaster>();
     }
 
-    void Update()
+    void OnTriggerEnter2D(Collider2D col)
     {
-        player.boxx = true;    
-        
+        if (col.CompareTag("Player"))
+        {
+            gm.InputText.text = ("จักขุสัมผัส หมายถึง การรับรู้ทางตา");
+        }
+    }
+
+    void OnTriggerStay2D(Collider2D col)
+    {
+        if (col.CompareTag("Player"))
+        {
+            gm.InputText.text = ("จักขุสัมผัส หมายถึง การรับรู้ทางตา");
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D col)
+    {
+        if (col.CompareTag("Player"))
+        {
+            gm.InputText.text = (" ");
+        }
     }
 }
